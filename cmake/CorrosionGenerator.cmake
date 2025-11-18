@@ -21,6 +21,9 @@ function(_cargo_metadata out manifest)
     if(FROZEN)
         set(cargo_frozen "--frozen")
     endif()
+    
+    get_filename_component(workspace_toml_dir "${manifest}" DIRECTORY)
+    
     execute_process(
         COMMAND
             ${CMAKE_COMMAND} -E env
@@ -33,7 +36,10 @@ function(_cargo_metadata out manifest)
                         --no-deps
                         ${cargo_locked}
                         ${cargo_frozen}
-
+        # Set WORKING_DIRECTORY to the directory containing the workspace `cargo.toml`. Cargo discovers
+        # configuration files like `.cargo/config.toml` and `toolchain.toml` by walking upward from the
+        # current directory.
+        WORKING_DIRECTORY "${workspace_toml_dir}"
         OUTPUT_VARIABLE json
         COMMAND_ERROR_IS_FATAL ANY
     )

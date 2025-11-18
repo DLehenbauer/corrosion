@@ -851,8 +851,10 @@ function(_add_cargo_build out_cargo_build_out_dir)
         # only specify the actual byproducts in the `POST_BUILD` custom command that copies the
         # byproducts to the final destination.
         # BYPRODUCTS  ${build_byproducts}
-        # The build is conducted in the directory of the Manifest, so that configuration files such as
-        # `.cargo/config.toml` or `toolchain.toml` are applied as expected.
+
+        # Set WORKING_DIRECTORY to the directory containing the workspace `cargo.toml`. Cargo discovers
+        # configuration files like `.cargo/config.toml` and `toolchain.toml` by walking upward from the
+        # current directory.
         WORKING_DIRECTORY "${workspace_toml_dir}"
         USES_TERMINAL
         COMMAND_EXPAND_LISTS
@@ -883,7 +885,11 @@ function(_add_cargo_build out_cargo_build_out_dir)
         COMMAND
             "${cargo_bin}" clean ${cargo_target_option}
             -p ${package_name} --manifest-path ${path_to_toml}
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/${build_dir}
+            --target-dir "${cargo_target_dir}"
+        # Set WORKING_DIRECTORY to the directory containing the workspace `cargo.toml`. Cargo discovers
+        # configuration files like `.cargo/config.toml` and `toolchain.toml` by walking upward from the
+        # current directory.
+        WORKING_DIRECTORY "${workspace_toml_dir}"
         USES_TERMINAL
     )
 
@@ -1909,4 +1915,3 @@ macro(_corrosion_arg_passthrough_helper arg_name prefix var_name)
 endmacro()
 
 list(POP_BACK CMAKE_MESSAGE_CONTEXT)
-
